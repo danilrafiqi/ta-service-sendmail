@@ -1,13 +1,11 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
 const app = express();
-const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.send("halo berhasil");
-});
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-router.get("/sendmail", (req, res) => {
+app.post("/", (req, res) => {
   const transport = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -17,19 +15,21 @@ router.get("/sendmail", (req, res) => {
   });
 
   const mailOption = {
-    from: "ADMIN",
-    to: "muhamaddanilrafiqi@gmail.com",
-    subject: "belajar kirim email",
-    text: "halo saya masih belajar"
+    from: `${req.body.from} <tourinc@tourinc.dev>`,
+    to: [],
+    bcc: `${req.body.to}`,
+    subject: `${req.body.subject}`,
+    text: `${req.body.message}`
   };
 
   transport.sendMail(mailOption, (err, info) => {
-    if (err) throw err;
-    res.send("halo berhasil kirim email");
+    if (err) {
+      res.json({ status: "err", message: err, data: null });
+    } else {
+      res.json({ status: "success", message: info, data: req.body });
+    }
   });
 });
-
-app.use(router);
 
 const port = process.env.PORT || 1234;
 app.listen(port, process.env.IP, () => {
